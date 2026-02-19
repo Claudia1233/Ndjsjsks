@@ -1,0 +1,1379 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fig Ficus - Burrow Adventure Journal</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&family=Amatic+SC:wght@700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            /* --- PALETA COTTAGECORE / BOSQUE --- */
+            --wood-dark: #5e4031;
+            --wood-med: #8b5e43;
+            --wood-light: #a67c52;
+            --paper-cream: #f2e8d5;
+            --paper-dark: #e6dcc5;
+            --accent-green: #7da16f; /* Verde musgo */
+            --accent-pink: #c25e5e; /* Rojo seta */
+            --accent-gold: #d4a057; /* Miel/Oro */
+            --text-brown: #4a3024;
+            --shadow-soft: 0 10px 20px rgba(0,0,0,0.2);
+        }
+
+        body {
+            background-color: #3a2e26;
+            background-image: url('https://images.unsplash.com/photo-1448375240586-882707db888b?auto=format&fit=crop&w=1920&q=80');
+            background-size: cover;
+            background-position: center;
+            background-blend-mode: multiply;
+            font-family: 'Patrick Hand', cursive;
+            color: var(--text-brown);
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+            padding: 20px;
+            box-sizing: border-box;
+            font-size: 1.2rem;
+            transition: background 0.5s ease;
+        }
+
+        /* --- MODO NOCHE --- */
+        body.night-mode {
+            background-color: #1a1512;
+            background-image: url('https://www.transparenttextures.com/patterns/stardust.png');
+            background-blend-mode: normal;
+        }
+        body.night-mode .game-container {
+            background-color: #2e2420;
+            border-color: #1a120e;
+            color: #dcd1b3;
+        }
+        body.night-mode .wood-panel, body.night-mode .main-content-panel {
+            background-color: #3e322a;
+            border-color: #5e4a3d;
+        }
+        body.night-mode .card {
+            background: #4a3b32;
+            color: #e6dcc5;
+            border-color: #5e4a3d;
+        }
+        body.night-mode .post-excerpt { color: #ccc; }
+        body.night-mode .section-title, body.night-mode .post-title { color: #e6b87e; }
+        body.night-mode .pixel-btn { background: #5e4a3d; color: #dcd1b3; border-color: #2e2420; }
+        body.night-mode .pixel-btn:hover { background: #4a3b32; }
+        body.night-mode .rich-editor-container { background: rgba(62, 50, 42, 0.9); border-color: #5e4a3d; color: #dcd1b3; }
+        body.night-mode .editor-content-area { color: #dcd1b3; }
+        body.night-mode input, body.night-mode select, body.night-mode textarea { 
+            background: #4a3b32; color: #dcd1b3; border-color: #5e4a3d; 
+        }
+
+        /* --- CONTENEDOR PRINCIPAL --- */
+        .game-container {
+            background-color: var(--wood-med);
+            padding: 25px;
+            border-radius: 20px;
+            border: 6px solid var(--wood-dark);
+            box-shadow: var(--shadow-soft);
+            max-width: 1100px;
+            width: 100%;
+            position: relative;
+            background-image: repeating-linear-gradient(45deg, rgba(0,0,0,0.02) 0px, rgba(0,0,0,0.02) 2px, transparent 2px, transparent 8px);
+            transition: 0.5s;
+        }
+
+        /* Tornillos decorativos */
+        .game-container::before, .game-container::after {
+            content: '';
+            position: absolute; width: 15px; height: 15px; 
+            background: #4a3024; border-radius: 50%; box-shadow: inset 1px 1px 2px rgba(255,255,255,0.3);
+            top: 15px;
+        }
+        .game-container::before { left: 15px; }
+        .game-container::after { right: 15px; }
+
+        .layout-grid {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            gap: 30px;
+            min-height: 80vh;
+            margin-top: 10px;
+        }
+
+        /* --- PANELES --- */
+        .wood-panel, .main-content-panel {
+            background-color: var(--paper-cream);
+            border: 2px dashed var(--wood-light);
+            border-radius: 10px;
+            box-shadow: 2px 3px 5px rgba(0,0,0,0.1);
+            transition: 0.5s;
+        }
+
+        .wood-panel { padding: 20px; }
+        
+        .main-content-panel {
+            padding: 30px;
+            background-image: radial-gradient(var(--wood-light) 0.5px, transparent 0.5px);
+            background-size: 20px 20px;
+            position: relative;
+        }
+
+        /* --- SIDEBAR --- */
+        .sidebar { display: flex; flex-direction: column; gap: 20px; }
+        .profile-card { text-align: center; }
+        
+        .profile-frame {
+            width: 130px; height: 130px; margin: 0 auto 15px auto;
+            background: var(--paper-cream); padding: 5px;
+            border: 4px solid var(--wood-dark); border-radius: 50%;
+            position: relative; cursor: pointer; overflow: hidden;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        .profile-img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+
+        .profile-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(94, 64, 49, 0.7); border-radius: 50%;
+            display: flex; justify-content: center; align-items: center;
+            color: var(--paper-cream); font-size: 2rem;
+            opacity: 0; transition: 0.3s;
+        }
+        .profile-frame:hover .profile-overlay { opacity: 1; }
+
+        .blog-title { 
+            font-family: 'Amatic SC', cursive; font-size: 3.5rem; 
+            color: var(--accent-pink); margin: 10px 0 5px 0; 
+            text-shadow: 2px 2px 0px rgba(0,0,0,0.1); line-height: 0.8;
+        }
+
+        .player-stats { display: flex; justify-content: center; gap: 15px; margin-top: 15px; font-size: 1.3rem; font-weight: bold; }
+        .stat-item { 
+            background: rgba(255,255,255,0.6); padding: 5px 10px; border-radius: 15px; 
+            border: 1px solid var(--wood-light); display: flex; align-items: center; gap: 5px;
+        }
+        body.night-mode .stat-item { background: rgba(0,0,0,0.3); border-color: #5e4a3d; }
+
+        /* --- REPRODUCTOR DE AMBIENTE --- */
+        .music-box {
+            background: var(--wood-dark);
+            padding: 15px;
+            border-radius: 10px;
+            border: 3px solid var(--wood-light);
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
+            text-align: center;
+        }
+        .music-title {
+            font-family: 'Amatic SC', cursive;
+            color: var(--accent-gold);
+            font-size: 1.8rem;
+            margin: 0 0 10px 0;
+            text-shadow: 1px 1px 0 #000;
+        }
+        .music-controls {
+            display: flex;
+            justify-content: space-around;
+        }
+        .music-btn {
+            background: var(--paper-dark);
+            border: 2px solid var(--wood-light);
+            border-radius: 50%;
+            width: 45px; height: 45px;
+            cursor: pointer;
+            font-size: 1.2rem;
+            color: var(--text-brown);
+            transition: 0.3s;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .music-btn:hover { background: var(--accent-gold); color: white; transform: rotate(15deg); }
+        .music-btn.active { background: var(--accent-pink); color: white; border-color: white; box-shadow: 0 0 10px var(--accent-pink); }
+
+        /* --- TABLÓN DE MISIONES --- */
+        .quest-board {
+            background: #fffdf0; /* Pergamino claro */
+            padding: 20px;
+            border: 1px solid #dcd1b3;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            position: relative;
+            transform: rotate(1deg);
+        }
+        body.night-mode .quest-board { background: #dcd1b3; color: #4a3024; }
+
+        .quest-board::before {
+            content: ''; position: absolute; top: -10px; left: 50%; transform: translateX(-50%);
+            width: 20px; height: 20px; background: var(--accent-pink); border-radius: 50%;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3); /* Chincheta */
+        }
+        .quest-item {
+            display: flex; align-items: center; gap: 10px;
+            font-family: 'Patrick Hand'; font-size: 1.3rem;
+            padding: 5px 0; border-bottom: 1px dashed #e0d0b0;
+            cursor: pointer; transition: 0.2s;
+        }
+        .quest-item:hover { background: rgba(0,0,0,0.02); }
+        .quest-checkbox {
+            width: 20px; height: 20px; border: 2px solid var(--wood-light);
+            border-radius: 4px; display: flex; align-items: center; justify-content: center;
+            color: transparent; transition: 0.2s;
+        }
+        .quest-item.completed .quest-checkbox { background: var(--accent-green); border-color: var(--accent-green); color: white; }
+        .quest-item.completed span { text-decoration: line-through; color: #aaa; }
+
+        /* --- MENÚ --- */
+        .nav-menu { display: flex; flex-direction: column; gap: 10px; }
+
+        .pixel-btn {
+            background: var(--wood-light); color: var(--paper-cream); border: none;
+            border-radius: 5px 15px 5px 15px; padding: 10px 20px;
+            text-align: left; cursor: pointer; font-family: 'Patrick Hand', cursive;
+            font-size: 1.4rem; box-shadow: 0 3px 0 var(--wood-dark); transition: 0.2s;
+            display: flex; align-items: center; gap: 12px; border: 2px solid var(--wood-dark);
+        }
+
+        .pixel-btn:hover { transform: translateY(-2px); background: var(--wood-med); }
+        .pixel-btn:active, .pixel-btn.active { 
+            background: var(--accent-green); color: var(--text-brown);
+            box-shadow: inset 0 3px 5px rgba(0,0,0,0.2); transform: translateY(2px); border-style: dashed;
+        }
+        
+        .btn-write { background: var(--accent-pink); color: white; text-align: center; justify-content: center; margin-top: 10px; border-radius: 20px; }
+        .btn-write:hover { background: #d47676; }
+
+        /* --- CONTENIDO --- */
+        .section-header {
+            border-bottom: 3px dotted var(--accent-pink); margin-bottom: 25px; padding-bottom: 10px;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .section-title { 
+            font-family: 'Amatic SC', cursive; font-size: 4rem; 
+            color: var(--text-brown); margin: 0; line-height: 0.8;
+        }
+
+        .card {
+            background: #fff; border: 1px solid #ddd;
+            border-radius: 2px 2px 20px 2px; padding: 25px; margin-bottom: 30px;
+            box-shadow: 3px 3px 10px rgba(0,0,0,0.1); position: relative;
+            transform: rotate(-1deg); transition: 0.3s;
+        }
+        .card:hover { transform: rotate(0deg) scale(1.01); }
+        
+        .card::after {
+            content: ''; position: absolute; top: -15px; left: 50%; transform: translateX(-50%);
+            width: 100px; height: 35px; background: rgba(255,255,255,0.4);
+            border-left: 1px solid rgba(0,0,0,0.1); border-right: 1px solid rgba(0,0,0,0.1);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        body.night-mode .card::after { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.1); }
+        
+        .card.pinned { border: 2px solid var(--accent-gold); background: #fffdf8; transform: rotate(1deg); }
+        body.night-mode .card.pinned { background: #554433; }
+        
+        .card.pinned::before {
+            content: '\f08d'; font-family: "Font Awesome 6 Free"; font-weight: 900;
+            position: absolute; top: 10px; right: 15px;
+            color: var(--accent-gold); font-size: 1.5rem; transform: rotate(15deg);
+        }
+
+        /* DECORACIONES VISUALES */
+        .wax-seal {
+            position: absolute; top: -15px; right: -15px; width: 60px; height: 60px;
+            background: var(--accent-pink); border-radius: 50%;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.3), 2px 2px 5px rgba(0,0,0,0.2);
+            display: flex; justify-content: center; align-items: center;
+            color: rgba(255,255,255,0.8); font-size: 1.8rem;
+            border: 4px double rgba(0,0,0,0.1); transform: rotate(20deg); z-index: 5;
+        }
+        .washi-tape {
+            position: absolute; top: -10px; left: 30%; width: 120px; height: 35px;
+            background: rgba(220, 200, 150, 0.7); transform: rotate(-3deg);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1); opacity: 0.8;
+            background-image: repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(255,255,255,0.3) 10px, rgba(255,255,255,0.3) 20px);
+            z-index: 5;
+        }
+        .dried-flower {
+            position: absolute; bottom: -15px; right: -10px;
+            font-size: 3.5rem; color: rgba(125, 161, 111, 0.5);
+            transform: rotate(-15deg); pointer-events: none; z-index: 0;
+        }
+
+        .post-meta { 
+            color: var(--accent-green); font-weight: bold; font-size: 1.1rem;
+            border-bottom: 1px solid var(--paper-dark); padding-bottom: 5px; display: block; margin-bottom: 10px;
+            text-transform: uppercase; letter-spacing: 1px;
+        }
+
+        .post-title { 
+            font-size: 2.2rem; margin: 5px 0 10px 0; cursor: pointer; color: var(--accent-pink);
+            font-family: 'Amatic SC', cursive; font-weight: bold;
+        }
+        .post-excerpt { font-size: 1.3rem; line-height: 1.6; color: #555; }
+        
+        .card-actions { 
+            margin-top: 20px; display: flex; gap: 15px; border-top: 1px dashed #ccc; padding-top: 10px; flex-wrap: wrap;
+        }
+        .card-actions button {
+            background: none; border: none; font-family: 'Patrick Hand'; font-size: 1.2rem; cursor: pointer;
+            color: var(--wood-light); display: flex; align-items: center; gap: 5px; transition: 0.2s;
+        }
+        .card-actions button:hover { color: var(--accent-green); transform: scale(1.1); }
+
+        /* --- EDITOR AVANZADO Y FORMULARIOS --- */
+        .admin-form label { display: block; margin-bottom: 8px; font-size: 1.3rem; color: var(--accent-pink); font-weight: bold;}
+        
+        .admin-form input, .admin-form select {
+            background: rgba(255,255,255,0.8); border: 2px solid var(--wood-light);
+            border-radius: 8px; padding: 12px; width: 100%; margin-bottom: 20px;
+            font-family: 'Patrick Hand'; font-size: 1.3rem; color: var(--text-brown);
+            box-sizing: border-box; transition: 0.3s;
+        }
+        
+        /* EDITOR DIV */
+        .rich-editor-container {
+            position: relative;
+            background: rgba(255,255,255,0.8);
+            border: 2px solid var(--wood-light);
+            border-radius: 8px;
+            margin-bottom: 20px;
+            transition: 0.3s;
+        }
+        
+        .rich-editor-toolbar {
+            background: rgba(255,255,255,0.5);
+            padding: 8px;
+            border-bottom: 1px dashed var(--wood-light);
+            display: flex;
+            gap: 10px;
+            border-radius: 6px 6px 0 0;
+        }
+        body.night-mode .rich-editor-toolbar { background: rgba(0,0,0,0.2); }
+
+        .editor-content-area {
+            min-height: 300px;
+            max-height: 600px;
+            overflow-y: auto;
+            padding: 15px;
+            font-family: 'Patrick Hand';
+            font-size: 1.3rem;
+            color: var(--text-brown);
+            outline: none;
+        }
+        
+        .editor-content-area:focus { background: #fff; }
+        body.night-mode .editor-content-area:focus { background: #4a3b32; }
+        
+        .rich-editor-container:focus-within {
+            border-color: var(--accent-green); 
+            box-shadow: 0 0 8px rgba(125, 161, 111, 0.3);
+        }
+
+        /* Imágenes en editor y posts */
+        .editor-content-area img, #single-content img {
+            max-width: 100%;
+            height: auto;
+            border: 5px solid #fff;
+            box-shadow: 2px 2px 8px rgba(0,0,0,0.2);
+            margin: 10px 0;
+            cursor: pointer; 
+        }
+        
+        /* Alineaciones */
+        .img-left { float: left; margin-right: 20px; margin-bottom: 10px; }
+        .img-right { float: right; margin-left: 20px; margin-bottom: 10px; }
+        .img-center { display: block; margin: 10px auto; }
+
+        .hidden { display: none !important; }
+
+        /* --- CONTADOR DE PALABRAS --- */
+        #word-counter {
+            position: absolute;
+            bottom: 5px;
+            right: 15px;
+            font-size: 1rem;
+            color: var(--wood-light);
+            background: rgba(255,255,255,0.7);
+            padding: 2px 8px;
+            border-radius: 10px;
+            pointer-events: none;
+        }
+        body.night-mode #word-counter { background: rgba(0,0,0,0.6); }
+
+        /* --- MODAL DE HISTORIAL --- */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(58, 46, 38, 0.8);
+            z-index: 1000; display: flex; justify-content: center; align-items: center;
+        }
+        .modal-content {
+            background: var(--paper-cream);
+            padding: 25px; border-radius: 15px; width: 400px;
+            border: 4px solid var(--wood-dark);
+            text-align: center;
+            max-height: 80vh; overflow-y: auto;
+        }
+        body.night-mode .modal-content { background: #3e322a; color: #dcd1b3; }
+        
+        .history-list { list-style: none; padding: 0; text-align: left; }
+        .history-item {
+            background: white; padding: 10px; margin-bottom: 8px;
+            border: 1px dashed var(--wood-light); border-radius: 5px;
+            display: flex; justify-content: space-between; align-items: center;
+            cursor: pointer; transition: 0.2s;
+        }
+        body.night-mode .history-item { background: #2e2420; }
+        .history-item:hover { background: var(--paper-dark); }
+        body.night-mode .history-item:hover { background: #4a3b32; }
+
+        /* --- RPG STATS & RAZAS --- */
+        .rpg-stat-block {
+            background: var(--paper-dark); color: var(--text-brown);
+            border: 2px solid var(--wood-dark); padding: 20px;
+            margin-top: 25px; border-radius: 8px;
+        }
+        body.night-mode .rpg-stat-block { background: #2e2420; color: #dcd1b3; }
+        
+        .stat-row {
+            display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 1.3rem;
+            border-bottom: 1px dotted var(--wood-light);
+        }
+        .stat-val { color: var(--accent-pink); font-weight: bold; }
+        .stat-bar-container {
+            width: 120px; height: 12px; background: rgba(255,255,255,0.5); 
+            border: 2px solid var(--wood-dark); border-radius: 10px; overflow: hidden;
+        }
+        .stat-bar-fill { height: 100%; background: var(--accent-green); border-right: 2px solid var(--wood-dark); }
+        
+        #race-manager-list { list-style: none; padding: 0; margin: 10px 0; }
+        #race-manager-list li {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 5px 10px; background: rgba(255,255,255,0.5);
+            margin-bottom: 5px; border-radius: 5px; border: 1px dashed var(--wood-light);
+        }
+
+        /* Responsive */
+        @media (max-width: 800px) {
+            .layout-grid { grid-template-columns: 1fr; gap: 20px; }
+            .game-container { padding: 10px; }
+            .nav-menu { flex-direction: row; flex-wrap: wrap; }
+            .pixel-btn { flex-grow: 1; justify-content: center; }
+            .section-title { font-size: 3rem; }
+            .quest-board { transform: rotate(0deg); }
+        }
+    </style>
+</head>
+<body>
+
+<div class="game-container">
+    <div class="layout-grid">
+        
+        <aside class="sidebar">
+            <div style="text-align:right; margin-bottom:0;">
+                <button onclick="toggleDayNight()" id="theme-toggle" class="pixel-btn" style="width:auto; display:inline-flex; padding: 5px 10px; border-radius: 50%;">
+                    <i class="fa-solid fa-moon"></i>
+                </button>
+            </div>
+
+            <div class="wood-panel profile-card" style="margin-top:0;">
+                <div class="profile-frame" onclick="document.getElementById('avatar-input').click()" title="Click para cambiar foto">
+                    <img src="https://i.pinimg.com/736x/e2/7c/13/e27c136924487de9727658296c754103.jpg" id="profile-avatar" class="profile-img" alt="Fig Ficus">
+                    <div class="profile-overlay"><i class="fa-solid fa-camera"></i></div>
+                </div>
+                <input type="file" id="avatar-input" accept="image/*" class="hidden" onchange="changeAvatar(this)">
+
+                <h1 class="blog-title">Fig Ficus</h1>
+                <div style="font-size: 1.1rem; color: var(--wood-light); margin-bottom: 10px;">~ <span id="profile-job-display">Exploradora Nivel 5</span> ~</div>
+   
+                <div class="player-stats">
+                    <div class="stat-item" style="color: var(--accent-pink);"><i class="fa-solid fa-heart"></i> HP 20</div>
+                    <div class="stat-item" style="color: var(--accent-gold);"><i class="fa-solid fa-coins"></i> 150 G</div>
+                </div>
+            </div>
+
+            <div class="music-box">
+                <h3 class="music-title">~ Ambiente del Bosque ~</h3>
+                <div class="music-controls">
+                    <button class="music-btn" onclick="toggleAudio(this, 'rain')" title="Lluvia Suave"><i class="fa-solid fa-cloud-rain"></i></button>
+                    <button class="music-btn" onclick="toggleAudio(this, 'fire')" title="Hoguera"><i class="fa-solid fa-fire"></i></button>
+                    <button class="music-btn" onclick="toggleAudio(this, 'birds')" title="Pajarillos"><i class="fa-solid fa-dove"></i></button>
+                </div>
+                <audio id="audio-rain" loop src="https://cdn.pixabay.com/download/audio/2022/03/10/audio_c8c8a73467.mp3"></audio>
+                <audio id="audio-fire" loop src="https://cdn.pixabay.com/download/audio/2021/08/09/audio_8ed5993952.mp3"></audio>
+                <audio id="audio-birds" loop src="https://cdn.pixabay.com/download/audio/2021/07/27/audio_2d529141b7.mp3"></audio>
+            </div>
+
+            <div class="wood-panel search-panel" style="padding: 10px; margin-bottom: 0; display:flex; align-items:center; gap:8px;">
+                <i class="fa-solid fa-magnifying-glass" style="color:var(--wood-light);"></i>
+                <input type="text" id="global-search" placeholder="Buscar..." oninput="handleSearch(this.value)" 
+                       style="border:none; background:transparent; width:100%; font-family:'Patrick Hand'; font-size:1.3rem; outline:none; color:var(--text-brown);">
+                <button onclick="clearSearch()" id="btn-clear-search" class="hidden" style="background:none; border:none; cursor:pointer; color:var(--accent-pink);">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <nav class="nav-menu wood-panel" style="padding: 15px;">
+                <button onclick="setSection('feed', 'all')" class="pixel-btn" id="nav-all">
+                    <i class="fa-solid fa-house-chimney"></i> Inicio
+                </button>
+                <button onclick="setSection('feed', 'diario')" class="pixel-btn" id="nav-diario">
+                    <i class="fa-solid fa-book"></i> Diario
+                </button>
+                <button onclick="setSection('feed', 'historia')" class="pixel-btn" id="nav-historia">
+                    <i class="fa-solid fa-scroll"></i> Misiones
+                </button>
+                <button onclick="setSection('feed', 'vision')" class="pixel-btn" id="nav-vision">
+                    <i class="fa-solid fa-eye"></i> Sueños
+                </button>
+                <button onclick="setSection('sobre')" class="pixel-btn" id="nav-sobre">
+                    <i class="fa-solid fa-user-astronaut"></i> Perfil
+                </button>
+                <button onclick="prepareEditMode(null)" class="pixel-btn btn-write">
+                    <i class="fa-solid fa-pencil"></i> NUEVO REGISTRO
+                </button>
+            </nav>
+
+            <div class="wood-panel quest-board">
+                <h3 style="margin-top:0; font-family:'Amatic SC'; font-size:2rem; text-align:center; color:var(--text-brown);">
+                    <i class="fa-solid fa-scroll"></i> Misiones Diarias
+                </h3>
+                <div id="quest-list">
+                    </div>
+                <div style="margin-top:10px; text-align:center;">
+                    <button onclick="addQuest()" style="background:none; border:none; color:var(--wood-light); cursor:pointer; font-family:'Patrick Hand'; font-size: 1.1rem;">
+                        <i class="fa-solid fa-plus"></i> Nueva misión
+                    </button>
+                </div>
+            </div>
+
+        </aside>
+
+        <main class="main-content-panel">
+            
+            <section id="sec-feed">
+                <div class="section-header">
+                    <h2 id="feed-title" class="section-title">Aventuras</h2>
+                    <i class="fa-solid fa-compass" style="font-size: 2.5rem; color: var(--accent-green);"></i>
+                </div>
+
+                <div id="historia-subnav" class="hidden" style="margin-bottom: 25px; display: flex; gap: 10px;">
+                    <button onclick="setStoryView('relato')" class="pixel-btn" style="padding: 5px 15px; font-size: 1.1rem; flex-grow:1; justify-content:center;">Relatos</button>
+                    <button onclick="setStoryView('personaje')" class="pixel-btn" style="padding: 5px 15px; font-size: 1.1rem; flex-grow:1; justify-content:center;">Bestiario</button>
+                    <button onclick="setStoryView('all')" class="pixel-btn" style="padding: 5px 15px; font-size: 1.1rem; background: var(--wood-dark); flex-grow:0;"><i class="fa-solid fa-filter"></i></button>
+                </div>
+
+                <div id="feed-container"></div>
+            </section>
+
+            <section id="sec-sobre" class="hidden">
+                <div class="section-header">
+                    <h2 class="section-title">Datos del Viajero</h2>
+                    <button onclick="toggleProfileEdit()" class="pixel-btn" style="padding: 5px 15px; font-size: 1rem;"><i class="fa-solid fa-feather"></i> Editar Ficha</button>
+                </div>
+
+                <div id="profile-view" style="font-size: 1.4rem; line-height: 1.6;">
+                    <p id="profile-bio-display">¡Hola! Soy Fig Ficus. Bienvenid@ a mi pequeña madriguera. Aquí guardo las historias que encuentro en el bosque.</p>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 30px;">
+                        <div class="wood-panel" style="background: white;">
+                            <h3 style="margin-top: 0; color: var(--accent-green); font-family:'Amatic SC'; font-size: 2rem;">CLASE ACTUAL</h3>
+                            <p id="profile-class-display">Escriba / Granjera de Palabras.</p>
+                        </div>
+                        <div class="wood-panel" style="background: white;">
+                             <h3 style="margin-top: 0; color: var(--accent-pink); font-family:'Amatic SC'; font-size: 2rem;">MOCHILA</h3>
+                            <p id="profile-inventory-display">Pluma fuente, Té caliente (+5 Energía), Cuaderno viejo.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="profile-edit-form" class="hidden admin-form" style="margin-top: 20px; padding-top: 20px; border-top: 2px dashed var(--wood-light);">
+                    <label>Sobre mí (Biografía):</label>
+                    <textarea id="profile-bio-input" rows="4"></textarea>
+
+                    <label>Título / Clase:</label>
+                    <input type="text" id="profile-job-input">
+
+                    <label>Contenido de la Mochila:</label>
+                    <input type="text" id="profile-inventory-input">
+                    
+                    <div style="display: flex; gap: 15px;">
+                        <button onclick="saveProfile()" class="pixel-btn active" style="flex: 1; justify-content: center;">GUARDAR FICHA</button>
+                        <button onclick="toggleProfileEdit()" class="pixel-btn" style="background: #ccc; color: #555; flex: 1; justify-content: center;">CANCELAR</button>
+                    </div>
+                </div>
+            </section>
+
+            <section id="sec-single" class="hidden">
+                <button onclick="backToFeed()" class="pixel-btn" style="margin-bottom:20px; display:inline-flex; width: auto;">
+                    <i class="fa-solid fa-arrow-left"></i> Volver atrás
+                </button>
+                <div id="single-content"></div>
+            </section>
+
+            <section id="sec-admin" class="hidden">
+                <div class="section-header">
+                    <h2 id="form-title" class="section-title">Escribir Entrada</h2>
+                    
+                    <button type="button" id="btn-history" onclick="openHistoryModal()" class="pixel-btn hidden" style="font-size: 1rem; padding: 5px 15px; background: var(--wood-dark);">
+                        <i class="fa-solid fa-clock-rotate-left"></i> Ver Historial
+                    </button>
+                </div>
+                
+                <form id="post-form" class="admin-form">
+                    <input type="hidden" id="post-id">
+                    <input type="hidden" id="post-pinned" value="false">
+                    
+                    <label><i class="fa-solid fa-tag"></i> Categoría</label>
+                    <select id="post-category" onchange="toggleRPGFields()">
+                        <option value="diario">Diario Personal</option>
+                        <option value="historia">Relato / Misión</option>
+                        <option value="personaje">Ficha de Bestiario</option>
+                        <option value="vision">Visión / Sueño</option>
+                    </select>
+
+                    <div id="rpg-editor" class="hidden" style="background: rgba(166, 124, 82, 0.2); padding: 20px; border-radius: 10px; margin-bottom: 25px; border: 2px dashed var(--wood-light);">
+                        <label style="color: var(--accent-pink); text-align:center; width:100%; display:block; font-family:'Amatic SC'; font-size:2rem;">~ Datos de la Criatura ~</label>
+                        
+                        <div style="display: flex; gap: 10px; align-items: center;">
+                            <select id="rpg-race-select" onchange="handleRaceEditorChange()" style="flex-grow: 1; margin-bottom: 0;">
+                                </select>
+                            <button type="button" onclick="toggleRaceManager()" class="pixel-btn" style="padding: 10px; font-size: 1rem;" title="Gestionar Razas"><i class="fa-solid fa-gear"></i></button>
+                        </div>
+                        
+                        <div id="race-manager-panel" class="hidden" style="margin: 15px 0; padding: 15px; background: var(--paper-cream); border: 2px solid var(--wood-dark); border-radius: 8px;">
+                             <h4 style="margin: 0 0 10px 0; color: var(--wood-dark);">Gestionar Razas Personalizadas</h4>
+                             <ul id="race-manager-list"></ul>
+                             <button type="button" onclick="toggleRaceManager()" class="pixel-btn" style="width: 100%; justify-content: center; font-size: 1rem; padding: 5px;">Cerrar Gestión</button>
+                        </div>
+
+                        <input type="text" id="rpg-race-custom" placeholder="Nombre de la especie..." class="hidden" style="margin-top:10px;">
+
+                        <label style="margin-top: 15px; display:block; color: var(--accent-green);">Estadísticas:</label>
+                        <div id="stats-inputs" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 15px;"></div>
+                    </div>
+
+                    <label>Título de la Entrada</label>
+                    <input type="text" id="post-title" required placeholder="Ej: Un día lluvioso...">
+                    
+                    <label>Contenido</label>
+                    
+                    <div class="rich-editor-container">
+                        <div class="rich-editor-toolbar">
+                            <button type="button" onclick="insertImagePrompt()" class="pixel-btn" style="padding: 5px 10px; font-size: 1rem;" title="Insertar Imagen">
+                                <i class="fa-solid fa-image"></i> Insertar Imagen
+                            </button>
+                            <small style="margin-left:auto; color:var(--wood-dark); display:flex; align-items:center;">
+                                <i class="fa-solid fa-circle-info" style="margin-right:5px"></i> Clic en imagen para editar
+                            </small>
+                        </div>
+                        <div id="post-content-editor" class="editor-content-area" contenteditable="true" placeholder="Escribe tu historia aquí... Puedes pegar o arrastrar imágenes."></div>
+                        <div id="word-counter">0 palabras</div>
+                    </div>
+
+                    <label>Etiquetas (separadas por comas)</label>
+                    <input type="text" id="post-tags" placeholder="bosque, magia, otoño...">
+
+                    <div style="display: flex; gap: 15px; margin-top: 25px;">
+                        <button type="submit" class="pixel-btn active" style="flex: 2; justify-content: center;">GUARDAR EN DIARIO</button>
+                        <button type="button" onclick="backToFeed()" class="pixel-btn" style="background: #ccc; color: #555; flex: 1; justify-content: center;">CANCELAR</button>
+                    </div>
+                </form>
+            </section>
+
+        </main>
+    </div>
+</div>
+
+<div id="history-modal-overlay" class="modal-overlay hidden" onclick="closeHistoryModal(event)">
+    <div class="modal-content">
+        <h3 style="font-family:'Amatic SC'; font-size: 2.5rem; margin-top:0; color: var(--accent-pink);">Historial de Versiones</h3>
+        <p style="font-size: 1rem; color: #666;">Selecciona una fecha para restaurar esa versión.</p>
+        <ul id="history-list" class="history-list">
+            </ul>
+        <button onclick="closeHistoryModal()" class="pixel-btn" style="margin-top:15px; width:100%; justify-content:center;">Cerrar</button>
+    </div>
+</div>
+
+<script>
+    // --- CONFIGURACIÓN Y DATOS ---
+    const STATS_HUMAN = ["FUERZA", "DEFENSA", "VELOCIDAD", "SUERTE", "CARISMA"];
+    const STATS_OTHER = ["ATAQUE", "MAGIA", "SALUD MAX", "MANA MAX", "RAREZA"];
+
+    // Datos del almacenamiento local
+    let db = JSON.parse(localStorage.getItem('FigFicus_PixelDB')) || [];
+    let customRaces = JSON.parse(localStorage.getItem('FigFicus_PixelRaces')) || [];
+    let profileData = JSON.parse(localStorage.getItem('FigFicus_ProfileData')) || {
+        bio: "¡Hola! Soy Fig Ficus. Bienvenid@ a mi pequeña madriguera.",
+        job: "Exploradora Nivel 5",
+        inventory: "Pluma fuente, Té caliente (+5 Energía), Cuaderno viejo."
+    };
+    
+    // Misiones (Quests)
+    let quests = JSON.parse(localStorage.getItem('FigFicus_Quests')) || [
+        { text: "Regar las plantas", completed: false },
+        { text: "Escribir 200 palabras", completed: false }
+    ];
+
+    let currentFilter = 'all';
+    let storySubFilter = 'all';
+    let currentEditingId = null;
+    let searchQuery = '';
+
+    // --- INICIALIZACIÓN ---
+    function init() {
+        const savedAvatar = localStorage.getItem('FigFicus_Avatar');
+        if(savedAvatar) document.getElementById('profile-avatar').src = savedAvatar;
+        
+        // Tema Día/Noche
+        if (localStorage.getItem('FigFicus_NightMode') === 'true') {
+            document.body.classList.add('night-mode');
+            const icon = document.getElementById('theme-toggle').querySelector('i');
+            icon.classList.remove('fa-moon'); icon.classList.add('fa-sun'); icon.style.color = "gold";
+        }
+
+        updateRaceDropdown();
+        loadProfile();
+        renderFeed();
+        renderQuests(); // Cargar misiones
+        setSection('feed', 'all');
+        
+        document.getElementById('post-content-editor').addEventListener('input', updateWordCount);
+        document.getElementById('post-content-editor').addEventListener('click', function(e) {
+            if(e.target.tagName === 'IMG') {
+                editImageProperties(e.target);
+            }
+        });
+    }
+
+    // --- FUNCIONES DE DÍA/NOCHE ---
+    function toggleDayNight() {
+        document.body.classList.toggle('night-mode');
+        const btn = document.getElementById('theme-toggle');
+        const icon = btn.querySelector('i');
+        const isNight = document.body.classList.contains('night-mode');
+        
+        localStorage.setItem('FigFicus_NightMode', isNight);
+
+        if(isNight) {
+            icon.classList.remove('fa-moon');
+            icon.classList.add('fa-sun');
+            icon.style.color = "gold";
+        } else {
+            icon.classList.remove('fa-sun');
+            icon.classList.add('fa-moon');
+            icon.style.color = "var(--paper-cream)";
+        }
+    }
+
+    // --- FUNCIONES DE AUDIO ---
+    function toggleAudio(btn, type) {
+        const audio = document.getElementById('audio-' + type);
+        // Pausar todos los otros
+        document.querySelectorAll('audio').forEach(a => {
+            if(a !== audio) { a.pause(); a.currentTime = 0; }
+        });
+        document.querySelectorAll('.music-btn').forEach(b => {
+            if(b !== btn) b.classList.remove('active');
+        });
+
+        if (audio.paused) {
+            audio.play();
+            btn.classList.add('active');
+        } else {
+            audio.pause();
+            btn.classList.remove('active');
+        }
+    }
+
+    // --- FUNCIONES DE MISIONES (QUESTS) ---
+    function renderQuests() {
+        const list = document.getElementById('quest-list');
+        list.innerHTML = '';
+        quests.forEach((q, index) => {
+            const div = document.createElement('div');
+            div.className = `quest-item ${q.completed ? 'completed' : ''}`;
+            div.onclick = function() { toggleQuest(index) };
+            div.innerHTML = `
+                <div class="quest-checkbox"><i class="fa-solid fa-check"></i></div>
+                <span>${q.text}</span>
+                <button onclick="deleteQuest(event, ${index})" style="margin-left:auto; background:none; border:none; color:var(--wood-light); cursor:pointer;"><i class="fa-solid fa-xmark"></i></button>
+            `;
+            list.appendChild(div);
+        });
+    }
+
+    function toggleQuest(index) {
+        quests[index].completed = !quests[index].completed;
+        saveQuests();
+        renderQuests();
+    }
+
+    function addQuest() {
+        const text = prompt("¿Cuál es tu nueva misión, aventurero?");
+        if(text) {
+            quests.push({ text: text, completed: false });
+            saveQuests();
+            renderQuests();
+        }
+    }
+
+    function deleteQuest(e, index) {
+        e.stopPropagation();
+        if(confirm("¿Abandonar esta misión?")) {
+            quests.splice(index, 1);
+            saveQuests();
+            renderQuests();
+        }
+    }
+
+    function saveQuests() {
+        localStorage.setItem('FigFicus_Quests', JSON.stringify(quests));
+    }
+
+    // --- FUNCIONES DE BÚSQUEDA ---
+    function handleSearch(val) {
+        searchQuery = val.trim().toLowerCase();
+        const clearBtn = document.getElementById('btn-clear-search');
+        if(searchQuery) clearBtn.classList.remove('hidden');
+        else clearBtn.classList.add('hidden');
+
+        const feedSec = document.getElementById('sec-feed');
+        if (feedSec.classList.contains('hidden') && searchQuery !== '') {
+            setSection('feed');
+        } else {
+            renderFeed();
+        }
+    }
+
+    function clearSearch() {
+        document.getElementById('global-search').value = '';
+        handleSearch('');
+    }
+
+    // --- LÓGICA DE IMÁGENES Y EDITOR ---
+    function updateWordCount() {
+        const text = document.getElementById('post-content-editor').innerText || "";
+        const count = text.trim().split(/\s+/).filter(w => w.length > 0).length;
+        document.getElementById('word-counter').innerText = count + " palabras";
+    }
+
+    function insertImagePrompt() {
+        const url = prompt("Introduce la URL de la imagen:");
+        if(url) {
+            const img = `<img src="${url}" class="img-center" style="width: 50%;">`;
+            document.execCommand('insertHTML', false, img);
+            updateWordCount();
+        }
+    }
+
+    function editImageProperties(imgElement) {
+        const size = prompt("Cambiar tamaño (escribe el número):\n1. Pequeño (25%)\n2. Mediano (50%)\n3. Grande (75%)\n4. Full (100%)", "2");
+        if(size) {
+            if(size === "1") imgElement.style.width = "25%";
+            if(size === "2") imgElement.style.width = "50%";
+            if(size === "3") imgElement.style.width = "75%";
+            if(size === "4") imgElement.style.width = "100%";
+        }
+
+        const align = prompt("Alineación:\nI. Izquierda\nC. Centro\nD. Derecha", "C");
+        if(align) {
+            imgElement.className = "";
+            const a = align.toUpperCase();
+            if(a === "I") imgElement.classList.add("img-left");
+            if(a === "D") imgElement.classList.add("img-right");
+            if(a === "C") imgElement.classList.add("img-center");
+        }
+    }
+
+    // --- PERFIL ---
+    function loadProfile() {
+        document.getElementById('profile-bio-display').innerText = profileData.bio;
+        document.getElementById('profile-job-display').innerText = profileData.job;
+        document.getElementById('profile-class-display').innerText = profileData.job;
+        document.getElementById('profile-inventory-display').innerText = profileData.inventory;
+    }
+
+    function toggleProfileEdit() {
+        const view = document.getElementById('profile-view');
+        const form = document.getElementById('profile-edit-form');
+        
+        if(form.classList.contains('hidden')) {
+            document.getElementById('profile-bio-input').value = profileData.bio;
+            document.getElementById('profile-job-input').value = profileData.job;
+            document.getElementById('profile-inventory-input').value = profileData.inventory;
+            view.classList.add('hidden');
+            form.classList.remove('hidden');
+        } else {
+            view.classList.remove('hidden');
+            form.classList.add('hidden');
+        }
+    }
+
+    function saveProfile() {
+        profileData.bio = document.getElementById('profile-bio-input').value;
+        profileData.job = document.getElementById('profile-job-input').value;
+        profileData.inventory = document.getElementById('profile-inventory-input').value;
+        localStorage.setItem('FigFicus_ProfileData', JSON.stringify(profileData));
+        loadProfile();
+        toggleProfileEdit();
+    }
+
+    function changeAvatar(input) {
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('profile-avatar').src = e.target.result;
+                localStorage.setItem('FigFicus_Avatar', e.target.result);
+            }
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    // --- NAVEGACIÓN ---
+    function setSection(id, filter = null) {
+        document.querySelectorAll('main > section').forEach(s => s.classList.add('hidden'));
+        document.getElementById('sec-' + id).classList.remove('hidden');
+        document.querySelectorAll('.nav-menu .pixel-btn').forEach(b => b.classList.remove('active'));
+        
+        if (id === 'feed') {
+            if (!searchQuery) {
+                currentFilter = filter || currentFilter;
+                const navBtn = document.getElementById('nav-' + currentFilter);
+                if(navBtn) navBtn.classList.add('active');
+                
+                if(currentFilter === 'historia') {
+                    document.getElementById('historia-subnav').classList.remove('hidden');
+                } else {
+                    document.getElementById('historia-subnav').classList.add('hidden');
+                }
+            }
+            renderFeed();
+        } else if (id === 'sobre') {
+            document.getElementById('nav-sobre').classList.add('active');
+        }
+        window.scrollTo(0, 0);
+    }
+
+    function setStoryView(view) { storySubFilter = view; renderFeed(); }
+    function backToFeed() { setSection('feed'); }
+
+    // --- GESTIÓN DE RAZAS ---
+    function toggleRPGFields() {
+        const cat = document.getElementById('post-category').value;
+        const rpgEditor = document.getElementById('rpg-editor');
+        if (cat === 'personaje') {
+            rpgEditor.classList.remove('hidden');
+            handleRaceEditorChange();
+        } else {
+            rpgEditor.classList.add('hidden');
+        }
+    }
+
+    function toggleRaceManager() {
+        const panel = document.getElementById('race-manager-panel');
+        panel.classList.toggle('hidden');
+        if(!panel.classList.contains('hidden')) renderRaceManagerList();
+    }
+
+    function renderRaceManagerList() {
+        const list = document.getElementById('race-manager-list');
+        list.innerHTML = '';
+        if(customRaces.length === 0) {
+            list.innerHTML = '<li style="justify-content:center; color:var(--wood-light);">(No hay razas personalizadas)</li>';
+            return;
+        }
+        customRaces.forEach((race, index) => {
+            list.innerHTML += `
+                <li>
+                    <span>${race}</span>
+                    <div>
+                        <button type="button" onclick="renameRace(${index})" class="pixel-btn race-actions-btn" style="background:var(--accent-gold)"><i class="fa-solid fa-pen-to-square"></i></button>
+                        <button type="button" onclick="deleteRace(${index})" class="pixel-btn race-actions-btn" style="background:var(--accent-pink); color:white;"><i class="fa-solid fa-trash"></i></button>
+                    </div>
+                </li>
+            `;
+        });
+    }
+
+    function deleteRace(index) {
+        if(confirm(`¿Eliminar la raza "${customRaces[index]}"?`)) {
+            customRaces.splice(index, 1);
+            localStorage.setItem('FigFicus_PixelRaces', JSON.stringify(customRaces));
+            updateRaceDropdown();
+            renderRaceManagerList();
+        }
+    }
+
+    function renameRace(index) {
+        const oldName = customRaces[index];
+        const newName = prompt("Nuevo nombre:", oldName);
+        if(newName && newName.trim() !== "" && newName !== oldName) {
+            customRaces[index] = newName.trim();
+            localStorage.setItem('FigFicus_PixelRaces', JSON.stringify(customRaces));
+            db.forEach(post => { if(post.race === oldName) post.race = newName.trim(); });
+            localStorage.setItem('FigFicus_PixelDB', JSON.stringify(db));
+            updateRaceDropdown();
+            renderRaceManagerList();
+        }
+    }
+
+    function updateRaceDropdown() {
+        const select = document.getElementById('rpg-race-select');
+        select.innerHTML = '<option value="Humano">Humano</option>';
+        customRaces.forEach(r => { select.innerHTML += `<option value="${r}">${r}</option>`; });
+        select.innerHTML += '<option value="Otro">Otro (Crear Nueva...)</option>';
+    }
+
+    function handleRaceEditorChange() {
+        const race = document.getElementById('rpg-race-select').value;
+        const customInput = document.getElementById('rpg-race-custom');
+        
+        if (race === 'Otro') {
+            customInput.classList.remove('hidden');
+            renderStatInputs(STATS_OTHER);
+        } else if (race === 'Humano') {
+            customInput.classList.add('hidden');
+            renderStatInputs(STATS_HUMAN);
+        } else {
+            customInput.classList.add('hidden');
+            renderStatInputs(STATS_OTHER);
+        }
+    }
+
+    function renderStatInputs(statsArray) {
+        const container = document.getElementById('stats-inputs');
+        container.innerHTML = '';
+        statsArray.forEach(s => {
+            container.innerHTML += `
+                <div style="display:flex; flex-direction:column;">
+                    <label style="font-size:1rem; color:var(--wood-dark);">${s}</label>
+                    <input type="number" class="stat-value-input" data-stat="${s}" placeholder="0" style="padding:5px;">
+                </div>`;
+        });
+    }
+
+    // --- MODO EDICIÓN Y HISTORIAL ---
+    function prepareEditMode(id) {
+        setSection('admin');
+        const form = document.getElementById('post-form');
+        form.reset();
+        document.getElementById('post-id').value = '';
+        document.getElementById('post-pinned').value = 'false';
+        document.getElementById('race-manager-panel').classList.add('hidden');
+        document.getElementById('post-content-editor').innerHTML = '';
+        document.getElementById('btn-history').classList.add('hidden');
+        currentEditingId = null;
+
+        if (id) {
+            currentEditingId = id;
+            const item = db.find(x => x.id === id);
+            
+            document.getElementById('btn-history').classList.remove('hidden');
+            document.getElementById('post-id').value = item.id;
+            document.getElementById('post-category').value = item.category;
+            document.getElementById('post-title').value = item.title;
+            document.getElementById('post-content-editor').innerHTML = item.content;
+            document.getElementById('post-tags').value = item.tags ? item.tags.join(', ') : '';
+            document.getElementById('post-pinned').value = item.pinned ? 'true' : 'false';
+            
+            toggleRPGFields();
+            if (item.category === 'personaje') {
+                const raceSelect = document.getElementById('rpg-race-select');
+                if ([...raceSelect.options].some(o => o.value === item.race)) {
+                    raceSelect.value = item.race;
+                } else {
+                    raceSelect.value = 'Otro';
+                    document.getElementById('rpg-race-custom').value = item.race;
+                }
+                handleRaceEditorChange();
+                setTimeout(() => {
+                    document.querySelectorAll('.stat-value-input').forEach(inp => {
+                        const sName = inp.dataset.stat;
+                        if (item.stats && item.stats[sName]) inp.value = item.stats[sName];
+                    });
+                }, 10);
+            }
+        } else {
+            toggleRPGFields();
+        }
+        updateWordCount();
+    }
+
+    function openHistoryModal() {
+        if(!currentEditingId) return;
+        const item = db.find(x => x.id === currentEditingId);
+        const list = document.getElementById('history-list');
+        list.innerHTML = '';
+
+        if (!item.history || item.history.length === 0) {
+            list.innerHTML = '<li style="text-align:center; padding:10px;">No hay versiones anteriores.</li>';
+        } else {
+            item.history.slice().reverse().forEach((ver, idx) => {
+                const realIndex = item.history.length - 1 - idx;
+                const li = document.createElement('li');
+                li.className = 'history-item';
+                li.innerHTML = `
+                    <span><i class="fa-solid fa-clock-rotate-left"></i> ${ver.savedDate || 'Fecha desconocida'}</span>
+                    <small>${ver.wordCount || 0} palabras</small>
+                `;
+                li.onclick = () => restoreVersion(realIndex);
+                list.appendChild(li);
+            });
+        }
+        document.getElementById('history-modal-overlay').classList.remove('hidden');
+    }
+
+    function closeHistoryModal(e) {
+        if(e && e.target !== document.getElementById('history-modal-overlay')) return;
+        document.getElementById('history-modal-overlay').classList.add('hidden');
+    }
+
+    function restoreVersion(historyIndex) {
+        if(!confirm("¿Seguro que quieres restaurar esta versión? Perderás lo que no hayas guardado ahora.")) return;
+        
+        const item = db.find(x => x.id === currentEditingId);
+        const version = item.history[historyIndex];
+
+        document.getElementById('post-title').value = version.title;
+        document.getElementById('post-content-editor').innerHTML = version.content;
+        updateWordCount();
+        
+        document.getElementById('history-modal-overlay').classList.add('hidden');
+    }
+
+    // --- GUARDAR / ACTUALIZAR POST ---
+    document.getElementById('post-form').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const id = document.getElementById('post-id').value || Date.now().toString();
+        const cat = document.getElementById('post-category').value;
+        const isPinned = document.getElementById('post-pinned').value === 'true';
+        
+        const contentHTML = document.getElementById('post-content-editor').innerHTML;
+
+        let race = '';
+        let stats = {};
+        
+        if (cat === 'personaje') {
+            const rSel = document.getElementById('rpg-race-select').value;
+            if (rSel === 'Otro') {
+                race = document.getElementById('rpg-race-custom').value.trim() || 'Desconocido';
+                if (!customRaces.includes(race) && race !== 'Desconocido') {
+                    customRaces.push(race);
+                    localStorage.setItem('FigFicus_PixelRaces', JSON.stringify(customRaces));
+                    updateRaceDropdown();
+                }
+            } else {
+                race = rSel;
+            }
+            document.querySelectorAll('.stat-value-input').forEach(inp => {
+                const val = parseInt(inp.value);
+                if (val > 0) stats[inp.dataset.stat] = val;
+            });
+        }
+
+        const currentEntry = {
+            id,
+            category: cat,
+            title: document.getElementById('post-title').value,
+            content: contentHTML,
+            img: '', 
+            tags: document.getElementById('post-tags').value.split(',').map(t => t.trim()).filter(t => t),
+            race,
+            stats,
+            pinned: isPinned,
+            date: new Date().toLocaleDateString(),
+            history: [] 
+        };
+
+        const existingIdx = db.findIndex(x => x.id === id);
+        if (existingIdx > -1) {
+            const oldVersion = db[existingIdx];
+            currentEntry.date = oldVersion.date; 
+            currentEntry.history = oldVersion.history || [];
+
+            if (oldVersion.content !== currentEntry.content || oldVersion.title !== currentEntry.title) {
+                currentEntry.history.push({
+                    title: oldVersion.title,
+                    content: oldVersion.content,
+                    savedDate: new Date().toLocaleString(),
+                    wordCount: (oldVersion.content || "").replace(/<[^>]*>?/gm, '').split(/\s+/).length
+                });
+            }
+            db[existingIdx] = currentEntry;
+        } else {
+            db.unshift(currentEntry);
+        }
+
+        localStorage.setItem('FigFicus_PixelDB', JSON.stringify(db));
+        backToFeed();
+    });
+
+    function deleteEntry(id) {
+        if (confirm('¿Arrancar esta hoja del diario?')) {
+            db = db.filter(x => x.id !== id);
+            localStorage.setItem('FigFicus_PixelDB', JSON.stringify(db));
+            renderFeed();
+        }
+    }
+
+    function togglePin(id) {
+        const post = db.find(x => x.id === id);
+        if(post) {
+            post.pinned = !post.pinned;
+            localStorage.setItem('FigFicus_PixelDB', JSON.stringify(db));
+            renderFeed();
+        }
+    }
+
+    // --- RENDERIZADO DEL FEED ---
+    function renderFeed() {
+        const container = document.getElementById('feed-container');
+        const titleElement = document.getElementById('feed-title');
+        container.innerHTML = '';
+
+        let filtered = db.filter(x => {
+            if (searchQuery) {
+                const matchTitle = x.title.toLowerCase().includes(searchQuery);
+                const matchTags = x.tags && x.tags.some(t => t.toLowerCase().includes(searchQuery));
+                return matchTitle || matchTags;
+            }
+            if (currentFilter === 'all') return true;
+            if (currentFilter === 'historia') {
+                if (x.category === 'historia' || x.category === 'personaje') {
+                    if (storySubFilter === 'all') return true;
+                    return x.category === storySubFilter;
+                }
+                return false;
+            }
+            return x.category === currentFilter;
+        });
+
+        if (searchQuery) {
+            titleElement.innerHTML = `Busqueda: "${searchQuery}" <span style="font-size:1.5rem; color:var(--wood-light)">(${filtered.length})</span>`;
+        } else {
+            if(currentFilter === 'all') titleElement.innerText = "Todas las Aventuras";
+            else if(currentFilter === 'diario') titleElement.innerText = "Querido Diario...";
+            else if(currentFilter === 'historia') titleElement.innerText = "Crónicas y Bestiario";
+            else if(currentFilter === 'vision') titleElement.innerText = "El Mundo Onírico";
+        }
+
+        filtered.sort((a, b) => {
+            if (a.pinned && !b.pinned) return -1;
+            if (!a.pinned && b.pinned) return 1;
+            return 0; 
+        });
+
+        if (filtered.length === 0) {
+            container.innerHTML = '<div style="text-align: center; padding: 40px; font-size: 1.5rem; color: var(--wood-light); font-style:italic;">( Nada por aquí... )</div>';
+            return;
+        }
+
+        filtered.forEach(item => {
+            const div = document.createElement('div');
+            div.className = `card ${item.pinned ? 'pinned' : ''}`;
+            
+            let typeLabel = item.category === 'personaje' ? `Bestiario: ${item.race}` : item.category;
+            let icon = 'fa-pen';
+            if(item.category === 'personaje') icon = 'fa-dragon';
+            if(item.category === 'vision') icon = 'fa-eye';
+            
+            const pinBtnText = item.pinned ? 'DESFIJAR' : 'FIJAR';
+            const pinBtnStyle = item.pinned ? 'color: var(--accent-gold);' : '';
+
+            const tempDiv = document.createElement("div");
+            tempDiv.innerHTML = item.content;
+            const plainText = tempDiv.textContent || tempDiv.innerText || "";
+            const excerpt = plainText.substring(0, 100);
+
+            // AGREGAR DECORACIONES ALEATORIAS O CONDICIONALES
+            let decorationHTML = '';
+            if (item.pinned) {
+                decorationHTML += '<div class="wax-seal"><i class="fa-solid fa-feather-pointed"></i></div>';
+            } else if (item.category === 'vision') {
+                // Sin decoración especial
+            } else {
+                // 40% de probabilidad de tener cinta washi tape si no está fijado
+                if (Math.random() > 0.6) {
+                    decorationHTML += '<div class="washi-tape"></div>';
+                }
+                // 30% de probabilidad de tener una flor seca
+                if (Math.random() > 0.7) {
+                    decorationHTML += '<i class="fa-brands fa-pagelines dried-flower"></i>';
+                }
+            }
+
+            div.innerHTML = `
+                ${decorationHTML}
+                <div class="post-meta"><i class="fa-solid ${icon}"></i> ${typeLabel} | ${item.date}</div>
+                <h3 class="post-title" onclick="viewSingle('${item.id}')">${item.title}</h3>
+                <p class="post-excerpt">${excerpt}...</p>
+                <div class="card-actions">
+                    <button onclick="viewSingle('${item.id}')"><i class="fa-solid fa-book-open"></i> LEER</button>
+                    <button onclick="prepareEditMode('${item.id}')"><i class="fa-solid fa-feather"></i> EDITAR</button>
+                    <button onclick="togglePin('${item.id}')" style="${pinBtnStyle}"><i class="fa-solid fa-thumbtack"></i> ${pinBtnText}</button>
+                    <button onclick="deleteEntry('${item.id}')" style="color:var(--accent-pink); margin-left:auto;"><i class="fa-solid fa-trash"></i> TIRAR</button>
+                </div>
+            `;
+            container.appendChild(div);
+        });
+    }
+
+    // --- RENDERIZADO DE POST INDIVIDUAL ---
+    function viewSingle(id) {
+        const item = db.find(x => x.id === id);
+        setSection('single');
+        const container = document.getElementById('single-content');
+        
+        let rpgBlock = '';
+        if (item.category === 'personaje') {
+            let statsHtml = '';
+            for (let [s, v] of Object.entries(item.stats)) {
+                let barWidth = Math.min(v * 5, 100);
+                statsHtml += `
+                    <div class="stat-row">
+                        <span>${s}</span>
+                        <div style="display:flex; align-items:center; gap:10px;">
+                            <div class="stat-bar-container">
+                                <div class="stat-bar-fill" style="width:${barWidth}%;"></div>
+                            </div>
+                            <span class="stat-val">${v}</span>
+                        </div>
+                    </div>`;
+            }
+            rpgBlock = `
+                <div class="rpg-stat-block">
+                    <h3 style="margin-top: 0; text-align:center; color: var(--accent-green); font-family:'Amatic SC'; font-size:2.5rem;">~ Ficha: ${item.race} ~</h3>
+                    <div>${statsHtml}</div>
+                </div>
+            `;
+        }
+
+        container.innerHTML = `
+            <div style="background: white; padding: 40px; border-radius: 2px; box-shadow: 5px 5px 15px rgba(0,0,0,0.1); position:relative; min-height:400px; ${item.pinned ? 'border: 3px solid var(--accent-gold);' : ''}">
+                <div style="position:absolute; top:-15px; left:50%; transform:translateX(-50%); width:120px; height:35px; background:rgba(230,230,230,0.5); border-left:1px solid #ccc; border-right:1px solid #ccc; box-shadow:0 2px 5px rgba(0,0,0,0.05);"></div>
+                
+                ${item.pinned ? '<i class="fa-solid fa-thumbtack" style="position:absolute; top:20px; right:20px; color:var(--accent-gold); font-size:1.5rem; transform:rotate(15deg);"></i>' : ''}
+                <div style="color: var(--wood-light); font-size: 1.2rem; text-transform: uppercase; letter-spacing:2px; text-align:center;">&bull; ${item.category} | ${item.date} &bull;</div>
+                <h1 style="font-family:'Amatic SC'; font-size: 4rem; margin: 10px 0 20px; color: var(--text-brown); text-align:center;">${item.title}</h1>
+                <div style="font-size: 1.4rem; line-height: 1.8; color:#444;">${item.content}</div>
+                ${rpgBlock}
+                <div style="margin-top: 50px; padding-top: 20px; border-top: 3px dotted var(--wood-light); color: var(--wood-med);">
+                    <i class="fa-solid fa-tags"></i> ${item.tags ? item.tags.join(', ') : 'Sin etiquetas'}
+                </div>
+            </div>
+        `;
+        // Ajuste manual si estamos en modo noche para el contenedor individual
+        if(document.body.classList.contains('night-mode')) {
+             const contentBox = container.firstElementChild;
+             contentBox.style.background = "#3e322a";
+             contentBox.style.color = "#dcd1b3";
+             contentBox.querySelectorAll('h1').forEach(h => h.style.color = "#e6b87e");
+             contentBox.querySelectorAll('div').forEach(d => { if(d.style.color === "rgb(68, 68, 68)") d.style.color = "#dcd1b3"; });
+        }
+    }
+
+    init();
+</script>
+</body>
+</html>
